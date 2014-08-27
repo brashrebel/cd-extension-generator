@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Client Dash Extension Boilerplate
-Description: Starting point for making an addon for Client Dash
-Version: 0.1.3
-Author: Kyle Maurer
-Author URI: http://realbigmarketing.com/staff/kyle
+Plugin Name: {plugin}
+Description: Description needed
+Version: 0.1
+Author: {name}
+Author URI: {site}
 */
 
 
@@ -40,7 +40,7 @@ function cd_boilerplate() {
 		* These variables you can change
 		*/
 		// Define the plugin name
-		public $plugin = 'My CD Extension';
+		public $plugin = '{plugin}';
 
 		// Setup your prefix
 		public $pre = 'cdbp';
@@ -52,13 +52,13 @@ function cd_boilerplate() {
 		// NOTE: This tab name can be a settings tab that already
 		// exists. It will then just add your settings to that tab
 		// (also applies to settings_tab)
-		private $tab = 'Boilerplate';
+		private $tab = '{tab}';
 
 		// Settings tab name (keep even if no settings)
 		public $settings_tab = 'Boilerplate';
 
 		// Set this to the page you want your tab to appear on (Account, Reports, Help, and Webmaster exist in Client Dash)
-		private $page = 'Account';
+		private $page = '{page}';
 
 		// The version of your extension. Keep this up to date!
 		public $version = '0.1.3';
