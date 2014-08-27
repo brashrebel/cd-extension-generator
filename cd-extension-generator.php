@@ -135,29 +135,41 @@ if ( !class_exists( 'WP_Zip_Generator' ) ) {
 		}
 	}
 }
+function cdxecute() {
+	if ( isset( $_POST['input_1'] ) ) { $name = $_POST['input_1']; } else { $name = null; }
+	if ( isset( $_POST['input_2'] ) && !empty( $_POST['input_2'] ) ) { $plugin = str_replace( ' ', '-', strtolower( $_POST['input_2'] ) ); } else { $plugin = 'my-cd-extension'; }
+	if ( isset( $_POST['input_3'] ) ) { $site = $_POST['input_3']; } else { $site = null; }
+	if ( isset( $_POST['input_4'] ) ) { $page = $_POST['input_4']; } else { $page = null; }
+	if ( isset( $_POST['input_5'] ) ) { $tab = $_POST['input_5']; } else { $tab = null; }
+	if ( isset( $_POST['input_6'] ) ) { $go = $_POST['input_6']; } else { $go = null; }
 
 	// Kyle additions
 	$variables = array(
-		'{name}'               => 'Double Rainbow',
-		'{author}'             => 'Brad Vincent'
+		'{name}'               => $name,
+		'{plugin}'             => $plugin,
+		'{site}'               => $site,
+		'{page}'             => $page,
+		'{tab}'               => $tab
 	);
 
 //create the generator
 	$zip_generator = new WP_Zip_Generator(array(
-		'name'                 => 'admin-color-scheme-generator',
+		'name'                 => $plugin,
 		'process_extensions'   => array('php', 'css', 'js', 'txt', 'md'),
 		'source_directory'     => dirname( __FILE__ ) . '/source/',
-		//'zip_root_directory'   => "beer",
-		'download_filename'    => "beer.zip",
+		'zip_root_directory'   => $plugin,
+		'download_filename'    => $plugin . ".zip",
 		'variables'            => $variables
 	));
 
-if ( $_GET['beer'] == 'true' ) {
+	if ( $go == 'true' ) {
 //generate the zip file
-	$zip_generator->generate();
+		$zip_generator->generate();
 
 //download it to the client
-	$zip_generator->send_download_headers();
+		$zip_generator->send_download_headers();
 
-	die();
+		die();
+	}
 }
+add_action( 'init', 'cdxecute' );
