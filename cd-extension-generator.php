@@ -10,6 +10,7 @@ License: GPL2
 
 /**
  * Zip File Generator Class for WordPress
+ * Source: https://github.com/bradvin/wp-zip-generator
  */
 if ( !class_exists( 'WP_Zip_Generator' ) ) {
 
@@ -135,6 +136,11 @@ if ( !class_exists( 'WP_Zip_Generator' ) ) {
 		}
 	}
 }
+
+
+/**
+ * Kyle's function for instantiating the class, grabbing posted values and using them
+ */
 function cdxecute() {
 	if ( isset( $_POST['input_1'] ) ) { $name = $_POST['input_1']; } else { $name = null; }
 	if ( isset( $_POST['input_2'] ) && !empty( $_POST['input_2'] ) ) { $plugin = str_replace( ' ', '-', strtolower( $_POST['input_2'] ) ); } else { $plugin = 'my-cd-extension'; }
@@ -148,8 +154,8 @@ function cdxecute() {
 		'{name}'               => $name,
 		'{plugin}'             => $plugin,
 		'{site}'               => $site,
-		'{page}'             => $page,
-		'{tab}'               => $tab
+		'{page}'               => $page,
+		'{tab}'                => $tab
 	);
 
 //create the generator
