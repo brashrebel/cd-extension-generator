@@ -30,12 +30,12 @@ function cd_ {plugin_u} () {
 	}
 
 	/**
-	 * Class MyCDExtension
+	 * Class {class}
 	 *
 	 * The main class for the extension. Be sure to rename this class something that
 	 * is unique to your extension. Duplicate classes will break PHP.
 	 */
-	class MyCDExtension extends ClientDash {
+	class {class} extends ClientDash {
 
 		/*
 		* These variables you can change
@@ -131,19 +131,19 @@ function cd_ {plugin_u} () {
 	}
 
 	// Instantiate the class
-	new MyCDExtension();
+	new {class}();
 
 	/**
-	 * Class MyCDExtension_Settings
+	 * Class {class}_Settings
 	 *
 	 * This is an optional class for adding a settings page to the Client
 	 * Dash interface. If your extension does not need settings, delete
 	 * this class.
 	 */
-	class MyCDExtension_Settings extends MyCDExtension {
+	class {class}_Settings extends {class} {
 
 		// Set up our settings section name
-		private $section_name = 'Boilerplate Settings';
+		private $section_name = '{plugin} Settings';
 
 		/*
 		* Now let's setup our options
@@ -251,7 +251,7 @@ function cd_ {plugin_u} () {
 		}
 	}
 
-	new MyCDExtension_Settings();
+	new {class}_Settings();
 }
 
 add_action( 'plugins_loaded', 'cd_{plugin_u}' );

@@ -153,14 +153,19 @@ function cdxecute() {
 		$plugin = 'my-cd-extension';
 	}
 	if ( isset( $plugin ) ) {
-		$plugin_u = str_replace( ' ', '-', strtolower( $plugin ) );
+		$plugin_u = str_replace( ' ', '_', strtolower( $plugin ) );
 	} else {
 		$plugin_u = 'my-cd-extension';
 	}
 	if ( isset( $plugin ) ) {
-		$plugin_d = str_replace( ' ', '_', strtolower( $plugin ) );
+		$plugin_d = str_replace( ' ', '-', strtolower( $plugin ) );
 	} else {
 		$plugin_d = null;
+	}
+	if ( isset( $plugin ) ) {
+		$class = str_replace( ' ', '', strtolower( $plugin ) );
+	} else {
+		$class = 'MyCDExtension';
 	}
 	if ( isset( $_POST['input_3'] ) ) {
 		$site = $_POST['input_3'];
@@ -185,13 +190,14 @@ function cdxecute() {
 
 	// Kyle additions
 	$variables = array(
-		'{name}'       => $name,
-		'{plugin}'     => $plugin,
+		'{name}'     => $name,
+		'{plugin}'   => $plugin,
 		'{plugin_u}' => $plugin_u,
 		'{plugin_d}' => $plugin_d,
-		'{site}'       => $site,
-		'{page}'       => $page,
-		'{tab}'        => $tab
+		'{class}'    => $class,
+		'{site}'     => $site,
+		'{page}'     => $page,
+		'{tab}'      => $tab
 	);
 
 //create the generator
