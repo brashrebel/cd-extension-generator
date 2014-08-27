@@ -135,6 +135,7 @@ if ( !class_exists( 'WP_Zip_Generator' ) ) {
 		}
 	}
 }
+
 	// Kyle additions
 	$variables = array(
 		'{name}'               => 'Double Rainbow',
@@ -146,15 +147,17 @@ if ( !class_exists( 'WP_Zip_Generator' ) ) {
 		'name'                 => 'admin-color-scheme-generator',
 		'process_extensions'   => array('php', 'css', 'js', 'txt', 'md'),
 		'source_directory'     => dirname( __FILE__ ) . '/source/',
-		'zip_root_directory'   => "beer",
+		//'zip_root_directory'   => "beer",
 		'download_filename'    => "beer.zip",
 		'variables'            => $variables
 	));
 
+if ( $_GET['beer'] == 'true' ) {
 //generate the zip file
-$zip_generator->generate();
+	$zip_generator->generate();
 
 //download it to the client
-$zip_generator->send_download_headers();
+	$zip_generator->send_download_headers();
 
-die();
+	die();
+}
