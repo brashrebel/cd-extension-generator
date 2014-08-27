@@ -12,7 +12,7 @@ License: GPL2
  * Zip File Generator Class for WordPress
  * Source: https://github.com/bradvin/wp-zip-generator
  */
-if ( !class_exists( 'WP_Zip_Generator' ) ) {
+if ( ! class_exists( 'WP_Zip_Generator' ) ) {
 
 	class WP_Zip_Generator {
 
@@ -142,33 +142,61 @@ if ( !class_exists( 'WP_Zip_Generator' ) ) {
  * Kyle's function for instantiating the class, grabbing posted values and using them
  */
 function cdxecute() {
-	if ( isset( $_POST['input_1'] ) ) { $name = $_POST['input_1']; } else { $name = null; }
-    if ( isset( $_POST['input_2'] ) && !empty( $_POST['input_2'] ) ) { $plugin = $_POST['input_2']; } else { $plugin = null; }
-    if ( isset( $plugin ) ) { $plugin_low = str_replace( ' ', '-', strtolower( $plugin ) ); } else { $plugin_low = 'my-cd-extension'; }
-	if ( isset( $_POST['input_3'] ) ) { $site = $_POST['input_3']; } else { $site = null; }
-	if ( isset( $_POST['input_4'] ) ) { $page = $_POST['input_4']; } else { $page = null; }
-	if ( isset( $_POST['input_5'] ) ) { $tab = $_POST['input_5']; } else { $tab = null; }
-	if ( isset( $_POST['input_6'] ) ) { $go = $_POST['input_6']; } else { $go = null; }
+	if ( isset( $_POST['input_1'] ) ) {
+		$name = $_POST['input_1'];
+	} else {
+		$name = null;
+	}
+	if ( isset( $_POST['input_2'] ) && ! empty( $_POST['input_2'] ) ) {
+		$plugin = $_POST['input_2'];
+	} else {
+		$plugin = 'my-cd-extension';
+	}
+	if ( isset( $plugin ) ) {
+		$plugin_low = str_replace( ' ', '-', strtolower( $plugin ) );
+	} else {
+		$plugin_low = 'my-cd-extension';
+	}
+	if ( isset( $_POST['input_3'] ) ) {
+		$site = $_POST['input_3'];
+	} else {
+		$site = null;
+	}
+	if ( isset( $_POST['input_4'] ) ) {
+		$page = $_POST['input_4'];
+	} else {
+		$page = null;
+	}
+	if ( isset( $_POST['input_5'] ) ) {
+		$tab = $_POST['input_5'];
+	} else {
+		$tab = null;
+	}
+	if ( isset( $_POST['input_6'] ) ) {
+		$go = $_POST['input_6'];
+	} else {
+		$go = null;
+	}
 
 	// Kyle additions
 	$variables = array(
-		'{name}'               => $name,
-		'{plugin}'             => $plugin,
-        '{plugin_low}'         => $plugin_low,
-		'{site}'               => $site,
-		'{page}'               => $page,
-		'{tab}'                => $tab
+		'{name}'       => $name,
+		'{plugin}'     => $plugin,
+		'{plugin_low}' => $plugin_low,
+		'{site}'       => $site,
+		'{page}'       => $page,
+		'{tab}'        => $tab
 	);
 
 //create the generator
-	$zip_generator = new WP_Zip_Generator(array(
-		'name'                 => $plugin,
-		'process_extensions'   => array('php', 'css', 'js', 'txt', 'md'),
-		'source_directory'     => dirname( __FILE__ ) . '/source/',
-		'zip_root_directory'   => $plugin_low,
-		'download_filename'    => $plugin_low . ".zip",
-		'variables'            => $variables
-	));
+	$zip_generator = new WP_Zip_Generator( array(
+		'name'               => $plugin,
+		'process_extensions' => array( 'php', 'css', 'js', 'txt', 'md' ),
+		'source_directory'   => dirname( __FILE__ ) . '/source/',
+		'zip_root_directory' => $plugin_low,
+		'download_filename'  => $plugin_low . ".zip",
+		'variables'          => $variables
+	) );
 
 	if ( $go == 'true' ) {
 //generate the zip file
@@ -180,4 +208,5 @@ function cdxecute() {
 		die();
 	}
 }
+
 add_action( 'init', 'cdxecute' );

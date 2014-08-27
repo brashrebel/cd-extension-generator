@@ -22,9 +22,13 @@ Author URI: {site}
  *
  * Please and thank you.
  */
-function cd_{plugin_low} () {
+function cd_ {
+	plugin_low}
+
+() {
 	if ( ! class_exists( 'ClientDash' ) ) {
 		add_action( 'admin_notices', 'cdbp_notice' );
+
 		return;
 	}
 
@@ -64,10 +68,10 @@ function cd_{plugin_low} () {
 		public $version = '0.1.3';
 
 		/**
-		* This constructor function sets up what happens when the plugin
-		* is activated. It is where you'll place all your actions, filters
-		* and other setup components.
-		*/
+		 * This constructor function sets up what happens when the plugin
+		 * is activated. It is where you'll place all your actions, filters
+		 * and other setup components.
+		 */
 		public function __construct() {
 
 			// Register our styles
@@ -107,13 +111,14 @@ function cd_{plugin_low} () {
 			$current_page = isset( $_GET['page'] ) ? $_GET['page'] : null;
 			$current_tab  = isset( $_GET['tab'] ) ? $_GET['tab'] : null;
 
-			$page_ID = $this->translate_name_to_id( $this->page );
-			$tab_ID = $this->translate_name_to_id( $this->tab );
+			$page_ID         = $this->translate_name_to_id( $this->page );
+			$tab_ID          = $this->translate_name_to_id( $this->tab );
 			$settings_tab_ID = $this->translate_name_to_id( $this->settings_tab );
 
 			// Only add style if on extension tab or on extension settings tab
 			if ( ( $current_page == $page_ID && $current_tab == $tab_ID )
-			     || ( $current_page == 'cd_settings' && $current_tab == $settings_tab_ID ) ) {
+			     || ( $current_page == 'cd_settings' && $current_tab == $settings_tab_ID )
+			) {
 				wp_enqueue_style( $this->pre );
 			}
 		}
