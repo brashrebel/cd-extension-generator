@@ -22,10 +22,7 @@ Author URI: {site}
  *
  * Please and thank you.
  */
-function cd_ {
-	plugin_low}
-
-() {
+function cd_ {plugin_u} () {
 	if ( ! class_exists( 'ClientDash' ) ) {
 		add_action( 'admin_notices', 'cdbp_notice' );
 
@@ -257,7 +254,7 @@ function cd_ {
 	new MyCDExtension_Settings();
 }
 
-add_action( 'plugins_loaded', 'cd_{plugin_low}' );
+add_action( 'plugins_loaded', 'cd_{plugin_u}' );
 
 /**
  * Notices for if CD is not active (no need to change)

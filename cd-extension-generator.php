@@ -153,9 +153,14 @@ function cdxecute() {
 		$plugin = 'my-cd-extension';
 	}
 	if ( isset( $plugin ) ) {
-		$plugin_low = str_replace( ' ', '-', strtolower( $plugin ) );
+		$plugin_u = str_replace( ' ', '-', strtolower( $plugin ) );
 	} else {
-		$plugin_low = 'my-cd-extension';
+		$plugin_u = 'my-cd-extension';
+	}
+	if ( isset( $plugin ) ) {
+		$plugin_d = str_replace( ' ', '_', strtolower( $plugin ) );
+	} else {
+		$plugin_d = null;
 	}
 	if ( isset( $_POST['input_3'] ) ) {
 		$site = $_POST['input_3'];
@@ -182,7 +187,8 @@ function cdxecute() {
 	$variables = array(
 		'{name}'       => $name,
 		'{plugin}'     => $plugin,
-		'{plugin_low}' => $plugin_low,
+		'{plugin_u}' => $plugin_u,
+		'{plugin_d}' => $plugin_d,
 		'{site}'       => $site,
 		'{page}'       => $page,
 		'{tab}'        => $tab
@@ -193,8 +199,8 @@ function cdxecute() {
 		'name'               => $plugin,
 		'process_extensions' => array( 'php', 'css', 'js', 'txt', 'md' ),
 		'source_directory'   => dirname( __FILE__ ) . '/source/',
-		'zip_root_directory' => $plugin_low,
-		'download_filename'  => $plugin_low . ".zip",
+		'zip_root_directory' => $plugin_u,
+		'download_filename'  => $plugin_u . ".zip",
 		'variables'          => $variables
 	) );
 
