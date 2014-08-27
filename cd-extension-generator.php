@@ -143,7 +143,8 @@ if ( !class_exists( 'WP_Zip_Generator' ) ) {
  */
 function cdxecute() {
 	if ( isset( $_POST['input_1'] ) ) { $name = $_POST['input_1']; } else { $name = null; }
-	if ( isset( $_POST['input_2'] ) && !empty( $_POST['input_2'] ) ) { $plugin = str_replace( ' ', '-', strtolower( $_POST['input_2'] ) ); } else { $plugin = 'my-cd-extension'; }
+    if ( isset( $_POST['input_2'] ) && !empty( $_POST['input_2'] ) ) { $plugin = $_POST['input_2']; } else { $plugin = null; }
+    if ( isset( $plugin ) ) { $plugin_low = str_replace( ' ', '-', strtolower( $plugin ) ); } else { $plugin_low = 'my-cd-extension'; }
 	if ( isset( $_POST['input_3'] ) ) { $site = $_POST['input_3']; } else { $site = null; }
 	if ( isset( $_POST['input_4'] ) ) { $page = $_POST['input_4']; } else { $page = null; }
 	if ( isset( $_POST['input_5'] ) ) { $tab = $_POST['input_5']; } else { $tab = null; }
@@ -153,6 +154,7 @@ function cdxecute() {
 	$variables = array(
 		'{name}'               => $name,
 		'{plugin}'             => $plugin,
+        '{plugin_low}'         => $plugin_low,
 		'{site}'               => $site,
 		'{page}'               => $page,
 		'{tab}'                => $tab
@@ -163,8 +165,8 @@ function cdxecute() {
 		'name'                 => $plugin,
 		'process_extensions'   => array('php', 'css', 'js', 'txt', 'md'),
 		'source_directory'     => dirname( __FILE__ ) . '/source/',
-		'zip_root_directory'   => $plugin,
-		'download_filename'    => $plugin . ".zip",
+		'zip_root_directory'   => $plugin_low,
+		'download_filename'    => $plugin_low . ".zip",
 		'variables'            => $variables
 	));
 

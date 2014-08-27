@@ -22,7 +22,7 @@ Author URI: {site}
  *
  * Please and thank you.
  */
-function cd_boilerplate() {
+function cd_{plugin_low} () {
 	if ( ! class_exists( 'ClientDash' ) ) {
 		add_action( 'admin_notices', 'cdbp_notice' );
 		return;
@@ -252,7 +252,7 @@ function cd_boilerplate() {
 	new MyCDExtension_Settings();
 }
 
-add_action( 'plugins_loaded', 'cd_boilerplate' );
+add_action( 'plugins_loaded', 'cd_{plugin_low}' );
 
 /**
  * Notices for if CD is not active (no need to change)
@@ -261,7 +261,7 @@ function cdbp_notice() {
 
 	?>
 	<div class="error">
-		<p>You have activated a plugin that requires <a href="http://w.org/plugins/client-dash">Client Dash</a>
+		<p>You have activated {plugin} which requires <a href="http://w.org/plugins/client-dash">Client Dash</a>
 			version 1.5 or greater.
 			Please install and activate <b>Client Dash</b> to continue using.</p>
 	</div>
