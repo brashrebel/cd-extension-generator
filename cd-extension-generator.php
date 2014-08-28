@@ -142,65 +142,84 @@ if ( ! class_exists( 'WP_Zip_Generator' ) ) {
  * Kyle's function for instantiating the class, grabbing posted values and using them
  */
 function cdxecute() {
-	if ( isset( $_POST['input_1'] ) ) {
-		$name = $_POST['input_1'];
-	} else {
-		$name = null;
-	}
-	if ( isset( $_POST['input_2'] ) && ! empty( $_POST['input_2'] ) ) {
-		$plugin = $_POST['input_2'];
-	} else {
-		$plugin = 'my-cd-extension';
-	}
-	if ( isset( $plugin ) ) {
-		$plugin_u = str_replace( ' ', '_', strtolower( $plugin ) );
-	} else {
-		$plugin_u = 'my-cd-extension';
-	}
-	if ( isset( $plugin ) ) {
-		$plugin_d = str_replace( ' ', '-', strtolower( $plugin ) );
-	} else {
-		$plugin_d = null;
-	}
-	if ( isset( $plugin ) ) {
-		$class = str_replace( ' ', '', strtolower( $plugin ) );
-	} else {
-		$class = 'MyCDExtension';
-	}
-	if ( isset( $_POST['input_3'] ) ) {
-		$site = $_POST['input_3'];
-	} else {
-		$site = null;
-	}
-	if ( isset( $_POST['input_4'] ) ) {
-		$page = $_POST['input_4'];
-	} else {
-		$page = null;
-	}
-	if ( isset( $_POST['input_5'] ) ) {
-		$tab = $_POST['input_5'];
-	} else {
-		$tab = null;
-	}
+
+	// Hidden field for distinguishing this form from others
 	if ( isset( $_POST['input_6'] ) ) {
 		$go = $_POST['input_6'];
 	} else {
 		$go = null;
 	}
+	// All other form fields
 
-	// Kyle additions
+	// Author name
+	if ( isset( $_POST['input_1'] ) ) {
+		$name = $_POST['input_1'];
+	} else {
+		$name = null;
+	}
+	// Plugin name
+	if ( isset( $_POST['input_2'] ) && ! empty( $_POST['input_2'] ) ) {
+		$plugin = $_POST['input_2'];
+	} else {
+		$plugin = 'my-cd-extension';
+	}
+	// Plugin name with underscores instead of spaces
+	if ( isset( $plugin ) ) {
+		$plugin_u = str_replace( ' ', '_', strtolower( $plugin ) );
+	} else {
+		$plugin_u = 'my-cd-extension';
+	}
+	// Plugin name with dashes instead of spaces
+	if ( isset( $plugin ) ) {
+		$plugin_d = str_replace( ' ', '-', strtolower( $plugin ) );
+	} else {
+		$plugin_d = null;
+	}
+	// Plugin name with removed spaces
+	if ( isset( $plugin ) ) {
+		$class = str_replace( ' ', '', strtolower( $plugin ) );
+	} else {
+		$class = 'MyCDExtension';
+	}
+	// Author's website
+	if ( isset( $_POST['input_3'] ) ) {
+		$site = $_POST['input_3'];
+	} else {
+		$site = null;
+	}
+	// Plugin description
+	if ( isset( $_POST['input_7'] ) ) {
+		$description = $_POST['input_7'];
+	} else {
+		$description = null;
+	}
+	// Client Dash page to add content to
+	if ( isset( $_POST['input_4'] ) ) {
+		$page = $_POST['input_4'];
+	} else {
+		$page = 'account';
+	}
+	// Client Dash tab to create or add to
+	if ( isset( $_POST['input_5'] ) ) {
+		$tab = $_POST['input_5'];
+	} else {
+		$tab = 'about_you';
+	}
+
+	// Define the variables to replace in the source files and the values to give them
 	$variables = array(
 		'{name}'     => $name,
 		'{plugin}'   => $plugin,
 		'{plugin_u}' => $plugin_u,
 		'{plugin_d}' => $plugin_d,
+		'{description}' => $description,
 		'{class}'    => $class,
 		'{site}'     => $site,
 		'{page}'     => $page,
 		'{tab}'      => $tab
 	);
 
-//create the generator
+	// Create the generator
 	$zip_generator = new WP_Zip_Generator( array(
 		'name'               => $plugin,
 		'process_extensions' => array( 'php', 'css', 'js', 'txt', 'md' ),
@@ -211,10 +230,10 @@ function cdxecute() {
 	) );
 
 	if ( $go == 'true' ) {
-//generate the zip file
+		// Generate the zip file
 		$zip_generator->generate();
 
-//download it to the client
+		// Download it to the client
 		$zip_generator->send_download_headers();
 
 		die();

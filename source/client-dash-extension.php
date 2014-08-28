@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: {plugin}
-Description: Description needed
+Description: {description}
 Version: 0.1
 Author: {name}
 Author URI: {site}
@@ -22,7 +22,7 @@ Author URI: {site}
  *
  * Please and thank you.
  */
-function cd_ {plugin_u} () {
+function cd_{plugin_u} () {
 	if ( ! class_exists( 'ClientDash' ) ) {
 		add_action( 'admin_notices', 'cdbp_notice' );
 
