@@ -177,7 +177,7 @@ function cdxecute() {
 	}
 	// Plugin name with removed spaces
 	if ( isset( $plugin ) ) {
-		$class = str_replace( ' ', '', strtolower( $plugin ) );
+		$class = str_replace( ' ', '', $plugin );
 	} else {
 		$class = 'MyCDExtension';
 	}
@@ -193,6 +193,18 @@ function cdxecute() {
 	} else {
 		$description = null;
 	}
+	// Plugin tags
+	if ( isset( $_POST['input_8'] ) ) {
+		$tags = $_POST['input_8'];
+	} else {
+		$tags = null;
+	}
+	// Creator's wordpress.org username
+	if ( isset( $_POST['input_11'] ) ) {
+		$dotorgun = $_POST['input_11'];
+	} else {
+		$dotorgun = null;
+	}
 	// Client Dash page to add content to
 	if ( isset( $_POST['input_4'] ) ) {
 		$page = $_POST['input_4'];
@@ -205,18 +217,27 @@ function cdxecute() {
 	} else {
 		$tab = 'about_you';
 	}
+	// Client Dash section to create
+	if ( isset( $_POST['input_12'] ) ) {
+		$section = $_POST['input_12'];
+	} else {
+		$section = 'about_you';
+	}
 
 	// Define the variables to replace in the source files and the values to give them
 	$variables = array(
-		'{name}'     => $name,
-		'{plugin}'   => $plugin,
-		'{plugin_u}' => $plugin_u,
-		'{plugin_d}' => $plugin_d,
+		'{name}'        => $name,
+		'{plugin}'      => $plugin,
+		'{plugin_u}'    => $plugin_u,
+		'{plugin_d}'    => $plugin_d,
 		'{description}' => $description,
-		'{class}'    => $class,
-		'{site}'     => $site,
-		'{page}'     => $page,
-		'{tab}'      => $tab
+		'{class}'       => $class,
+		'{site}'        => $site,
+		'{tags}'        => $tags,
+		'{dotorgun}'    => $dotorgun,
+		'{page}'        => $page,
+		'{tab}'         => $tab,
+		'{section}'     => $section
 	);
 
 	// Create the generator
@@ -224,8 +245,8 @@ function cdxecute() {
 		'name'               => $plugin,
 		'process_extensions' => array( 'php', 'css', 'js', 'txt', 'md' ),
 		'source_directory'   => dirname( __FILE__ ) . '/source/',
-		'zip_root_directory' => $plugin_u,
-		'download_filename'  => $plugin_u . ".zip",
+		'zip_root_directory' => $plugin_d,
+		'download_filename'  => $plugin_d . ".zip",
 		'variables'          => $variables
 	) );
 

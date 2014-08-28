@@ -7,24 +7,16 @@ Author: {name}
 Author URI: {site}
 */
 
-
 /**
  * The function to launch our plugin.
  *
  * This entire class is wrapped in this function because we have
  * to ensure that Client Dash has been loaded before our extension.
  *
- * NOTE: This function needs to be changed to whatever your extension
- * is. Also change it at the bottom under "add_action( 'cd_boilerplate'..."
- *
- * ALSO NOTE: You also need to change the function name "cdbp_notice" to something
- * else. Both way at the bottom, and also right here, under "add_action( 'admin_notices'..."
- *
- * Please and thank you.
  */
 function cd_{plugin_u} () {
 	if ( ! class_exists( 'ClientDash' ) ) {
-		add_action( 'admin_notices', 'cdbp_notice' );
+		add_action( 'admin_notices', '{dotorgun}_notice' );
 
 		return;
 	}
@@ -32,8 +24,7 @@ function cd_{plugin_u} () {
 	/**
 	 * Class {class}
 	 *
-	 * The main class for the extension. Be sure to rename this class something that
-	 * is unique to your extension. Duplicate classes will break PHP.
+	 * The main class for the extension.
 	 */
 	class {class} extends ClientDash {
 
@@ -44,10 +35,10 @@ function cd_{plugin_u} () {
 		public $plugin = '{plugin}';
 
 		// Setup your prefix
-		public $pre = 'cdbp';
+		public $pre = '{dotorgun}';
 
 		// Set this to be name of your content section
-		private $section_name = 'Boilerplate Content';
+		private $section_name = '{section}';
 
 		// Set the tab name
 		// NOTE: This tab name can be a settings tab that already
@@ -56,13 +47,13 @@ function cd_{plugin_u} () {
 		private $tab = '{tab}';
 
 		// Settings tab name (keep even if no settings)
-		public $settings_tab = 'Boilerplate';
+		public $settings_tab = '{plugin}';
 
 		// Set this to the page you want your tab to appear on (Account, Reports, Help, and Webmaster exist in Client Dash)
 		private $page = '{page}';
 
 		// The version of your extension. Keep this up to date!
-		public $version = '0.1.3';
+		public $version = '0.1';
 
 		/**
 		 * This constructor function sets up what happens when the plugin
@@ -124,9 +115,23 @@ function cd_{plugin_u} () {
 		 * Our section output.
 		 */
 		public function section_output() {
+			/************************************
+			** This is where your content goes **
+			 ***********************************/
 
-			// CHANGE THIS
-			echo 'This is where your new content block\'s content goes.';
+
+
+
+
+			echo '{plugin} is working! {name} deserves a high five.';
+
+
+
+
+
+			/*****************************************
+			 ** This is the end of your new content **
+			 ****************************************/
 		}
 	}
 
@@ -250,8 +255,8 @@ function cd_{plugin_u} () {
 		<?php
 		}
 	}
-
-	new {class}_Settings();
+	// Uncomment the next line if these settings are necessary
+	// new {class}_Settings();
 }
 
 add_action( 'plugins_loaded', 'cd_{plugin_u}' );
@@ -259,12 +264,10 @@ add_action( 'plugins_loaded', 'cd_{plugin_u}' );
 /**
  * Notices for if CD is not active (no need to change)
  */
-function cdbp_notice() {
-
-	?>
+function {dotorgun}_notice() { ?>
 	<div class="error">
 		<p>You have activated {plugin} which requires <a href="http://w.org/plugins/client-dash">Client Dash</a>
-			version 1.5 or greater.
+			version 1.5.5 or greater.
 			Please install and activate <b>Client Dash</b> to continue using.</p>
 	</div>
 <?php
