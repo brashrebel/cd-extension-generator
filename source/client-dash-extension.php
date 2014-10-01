@@ -1,274 +1,197 @@
 <?php
 /*
-Plugin Name: {plugin}
-Description: {description}
-Version: 0.1
-Author: {name}
-Author URI: {site}
+Plugin Name: {plugin_name}
+Description: {plugin_description}
+Version: 0.1.0
+Author: {author_name}
+{if:author_uri}
+Author URI: {author_uri}
+{endif}
 */
 
-/**
- * The function to launch our plugin.
- *
- * This entire class is wrapped in this function because we have
- * to ensure that Client Dash has been loaded before our extension.
- *
- */
-function cd_{plugin_u} () {
-	if ( ! class_exists( 'ClientDash' ) ) {
-		add_action( 'admin_notices', '{dotorgun}_notice' );
-
-		return;
-	}
+if ( ! function_exists( '{plugin_ID}_wrapper' ) ) {
 
 	/**
-	 * Class {class}
+	 * The function to launch our plugin.
 	 *
-	 * The main class for the extension.
+	 * This entire class is wrapped in this function because we have to ensure that Client Dash has been loaded before our
+	 * extension.
 	 */
-	class {class} extends ClientDash {
+	function {plugin_ID}_wrapper() {
+		if ( ! class_exists( 'ClientDash' ) ) {
 
-		/*
-		* These variables you can change
-		*/
-		// Define the plugin name
-		public $plugin = '{plugin}';
+			// Change me! Change me to the name of the notice function at the bottom
+			add_action( 'admin_notices', '_{plugin_ID}_notice' );
 
-		// Setup your prefix
-		public $pre = '{dotorgun}';
-
-		// Set this to be name of your content section
-		private $section_name = '{section}';
-
-		// Set the tab name
-		// NOTE: This tab name can be a settings tab that already
-		// exists. It will then just add your settings to that tab
-		// (also applies to settings_tab)
-		private $tab = '{tab}';
-
-		// Settings tab name (keep even if no settings)
-		public $settings_tab = '{plugin}';
-
-		// Set this to the page you want your tab to appear on (Account, Reports, Help, and Webmaster exist in Client Dash)
-		private $page = '{page}';
-
-		// The version of your extension. Keep this up to date!
-		public $version = '0.1';
-
-		/**
-		 * This constructor function sets up what happens when the plugin
-		 * is activated. It is where you'll place all your actions, filters
-		 * and other setup components.
-		 */
-		public function __construct() {
-
-			// Register our styles
-			add_action( 'admin_init', array( $this, 'register_styles' ) );
-
-			// Add our styles conditionally
-			add_action( 'admin_enqueue_scripts', array( $this, 'add_styles' ) );
-
-			// Add our new content section
-			$this->add_content_section(
-				array(
-					'name'     => $this->section_name,
-					'page'     => $this->page,
-					'tab'      => $this->tab,
-					'callback' => array( $this, 'section_output' )
-				)
-			);
+			return;
 		}
 
 		/**
-		 * Register our styles.
+		 * Class MyCDExtension
+		 *
+		 * The main class for the extension. Be sure to rename this class something that is unique to your extension.
+		 * Duplicate classes will break PHP.
 		 */
-		public function register_styles() {
+		class {plugin_class} extends ClientDash {
 
-			wp_register_style(
-				$this->pre,
-				plugin_dir_url( __FILE__ ) . 'style.css',
-				null,
-				$this->version
-			);
-		}
+			/**
+			 * Your unique ID.
+			 *
+			 * This will be prefixed on many things throughout the plugin.
+			 */
+			public static $ID = '{plugin_ID}';
 
-		/**
-		 * Add our styles.
-		 */
-		public function add_styles() {
-			$current_page = isset( $_GET['page'] ) ? $_GET['page'] : null;
-			$current_tab  = isset( $_GET['tab'] ) ? $_GET['tab'] : null;
+			/**
+			 * This is the page that you want your new tab to reside in.
+			 */
+			private static $page = '{page}';
 
-			$page_ID         = $this->translate_name_to_id( $this->page );
-			$tab_ID          = $this->translate_name_to_id( $this->tab );
-			$settings_tab_ID = $this->translate_name_to_id( $this->settings_tab );
+			/**
+			 * Your tab name.
+			 *
+			 * This is the name of the tab that your plugin's content section will reside in.
+			 */
+			private static $tab = '{tab}';
 
-			// Only add style if on extension tab or on extension settings tab
-			if ( ( $current_page == $page_ID && $current_tab == $tab_ID )
-			     || ( $current_page == 'cd_settings' && $current_tab == $settings_tab_ID )
-			) {
-				wp_enqueue_style( $this->pre );
+{if:do_settings}
+			/**
+			 * This is the settings tab name.
+			 *
+			 * All of your plugin settings will reside here. This may also be the name of an existing tab.
+			 */
+			public static $settings_tab = '{settings_tab}';
+
+{endif}
+			/**
+			 * This is the section name of your boilerplate.
+			 *
+			 * This will be the display name of the content section that this plugin's content resides in. If there is only
+			 * one content section within the tab, the name will not show.
+			 */
+			private static $section_name = '{section_name}';
+
+			/**
+			 * This is the current version of your plugin. Keep it up to do date!
+			 */
+			public static $extension_version = '0.1.0';
+
+			/**
+			 * This is the path to the plugin.
+			 *
+			 * Private.
+			 */
+			public $_path;
+
+			/**
+			 * This is the url to the plugin.
+			 *
+			 * Private.
+			 */
+			public $_url;
+
+			/**
+			 * This constructor function sets up what happens when the plugin is activated. It is where you'll place all your
+			 * actions, filters and other setup components.
+			 */
+			public function __construct() {
+
+				// Register our styles
+				add_action( 'admin_init', array( $this, 'register_styles' ) );
+
+				// Add our styles conditionally
+				add_action( 'admin_enqueue_scripts', array( $this, 'add_styles' ) );
+
+				// Add our new content section
+				$this->add_content_section(
+					array(
+						'name'     => self::$section_name,
+						'tab'      => self::$tab,
+						'page'     => self::$page,
+						'callback' => array( $this, 'section_output' )
+					)
+				);
+
+				// Set the plugin path
+				$this->_path = plugin_dir_path( __FILE__ );
+
+				// Set the plugin url
+				$this->_url = plugins_url( '', __FILE__ );
+			}
+
+			/**
+			 * Register our styles.
+			 */
+			public function register_styles() {
+
+				wp_register_style(
+					self::$ID . '-style',
+					$this->_url . '/style.css',
+					null,
+					self::$extension_version
+				);
+			}
+
+			/**
+			 * Add our styles.
+			 *
+			 * If you want the styles to show up on the entire back-end, simply remove all but:
+			 * wp_enqueue_style( "$this->$ID-style" );
+			 */
+			public function add_styles() {
+
+				$page_ID         = self::translate_name_to_id( self::$page );
+				$tab_ID          = self::translate_name_to_id( self::$tab );
+				$settings_tab_ID = self::translate_name_to_id( self::$settings_tab );
+
+				// Only add style if on extension tab or on extension settings tab
+				if ( self::is_cd_page( $page_ID, $tab_ID ) || self::is_cd_page( 'cd_settings', $settings_tab_ID ) ) {
+					wp_enqueue_style( self::$ID . '-style' );
+				}
+			}
+
+			/**
+			 * Our section output.
+			 *
+			 * This is where all of the content section content goes! Add anything you like to this function.
+			 */
+			public function section_output() {
+
+				// CHANGE THIS
+				echo 'This is where your new content section\'s content goes.';
 			}
 		}
 
-		/**
-		 * Our section output.
-		 */
-		public function section_output() {
-			/************************************
-			** This is where your content goes **
-			 ***********************************/
-
-
-
-
-
-			echo '{plugin} is working! {name} deserves a high five.';
-
-
-
-
-
-			/*****************************************
-			 ** This is the end of your new content **
-			 ****************************************/
-		}
+		// Instantiate the class
+		${plugin_class} = new {plugin_class}();
+{if:do_settings}
+		// Include the file for your plugin settings.
+		include_once( ${plugin_class}->_path . 'inc/settings.php' );
+{endif}
+{if:do_widgets}
+		// Include the file for your plugin widget.
+		include_once( ${plugin_class}->_path . 'inc/widgets.php' );
+{endif}
+{if:do_menus}
+		// Include the file for your plugin menus.
+		include_once( ${plugin_class}->_path . 'inc/menus.php' );
+{endif}
 	}
 
-	// Instantiate the class
-	new {class}();
-
-	/**
-	 * Class {class}_Settings
-	 *
-	 * This is an optional class for adding a settings page to the Client
-	 * Dash interface. If your extension does not need settings, delete
-	 * this class.
-	 */
-	class {class}_Settings extends {class} {
-
-		// Set up our settings section name
-		private $section_name = '{plugin} Settings';
-
-		/*
-		* Now let's setup our options
-		* You can change the strings to be more unique
-		* If you change the variable names, you'll need to update the
-		* references in the register_settings() and settings_display() functions
-		*/
-		// A checkbox option
-		private $cb_option = '_checkbox';
-
-		// A text field option
-		private $text_option = '_text';
-
-		// and a URL/text field option
-		private $url_option = '_url';
-
-		/**
-		 * The main construct function.
-		 */
-		function __construct() {
-
-			// Register the extension settings
-			add_action( 'admin_init', array( $this, 'register_settings' ) );
-
-			// Add our content section
-			$this->add_content_section(
-				array(
-					'name'     => $this->section_name,
-					'page'     => 'Settings',
-					'tab'      => $this->settings_tab,
-					'callback' => array( $this, 'settings_output' )
-				)
-			);
-		}
-
-		/**
-		 * Register the extension's settings.
-		 */
-		public function register_settings() {
-
-			register_setting(
-				'cd_options_' . $this->translate_name_to_id( $this->settings_tab ),
-				$this->pre . $this->cb_option
-			);
-
-			register_setting(
-				'cd_options_' . $this->translate_name_to_id( $this->settings_tab ),
-				$this->pre . $this->text_option,
-				'esc_html' );
-
-			register_setting(
-				'cd_options_' . $this->translate_name_to_id( $this->settings_tab ),
-				$this->pre . $this->url_option,
-				'esc_url_raw' );
-		}
-
-		/**
-		 * Our settings content.
-		 */
-		public function settings_output() {
-
-			$checkbox_option_name = $this->pre . $this->cb_option;
-			$checkbox_option      = get_option( $checkbox_option_name );
-			$text_option          = $this->pre . $this->text_option;
-			$url_option           = $this->pre . $this->url_option;
-			?>
-			<table class="form-table">
-				<tbody>
-				<tr valign="top">
-					<th scope="row"><h3><?php echo $this->plugin; ?> settings</th>
-				</tr>
-				<tr valign="top">
-					<th scope="row">
-						<label for="<?php echo $checkbox_option_name; ?>">Checkbox setting</label>
-					</th>
-					<td><input type="hidden" name="<?php echo $checkbox_option_name; ?>" value="0"/>
-						<input type="checkbox" name="<?php echo $checkbox_option_name; ?>"
-						       id="<?php echo $checkbox_option_name; ?>"
-						       value="1" <?php checked( '1', $checkbox_option ); ?> />
-					</td>
-				</tr>
-				<tr valign="top">
-					<th scope="row">
-						<label for="<?php echo $text_option; ?>">Text setting</label>
-					</th>
-					<td><input type="text"
-					           id="<?php echo $text_option; ?>"
-					           name="<?php echo $text_option; ?>"
-					           value="<?php echo get_option( $text_option ); ?>"/>
-					</td>
-				</tr>
-				<tr valign="top">
-					<th scope="row">
-						<label for="<?php echo $url_option; ?>">URL setting</label>
-					</th>
-					<td><input type="text"
-					           id="<?php echo $url_option; ?>"
-					           name="<?php echo $url_option; ?>"
-					           value="<?php echo get_option( $url_option ); ?>"/>
-					</td>
-				</tr>
-				</tbody>
-			</table>
-		<?php
-		}
-	}
-	// Uncomment the next line if these settings are necessary
-	// new {class}_Settings();
+	add_action( 'plugins_loaded', '{plugin_ID}_wrapper' );
 }
 
-add_action( 'plugins_loaded', 'cd_{plugin_u}' );
+if ( ! function_exists( '_{plugin_ID}_notice' ) ) {
+	/**
+	 * Notices for if CD is not active.
+	 */
+	function _{plugin_ID}_notice() {
 
-/**
- * Notices for if CD is not active (no need to change)
- */
-function {dotorgun}_notice() { ?>
-	<div class="error">
-		<p>You have activated {plugin} which requires <a href="http://w.org/plugins/client-dash">Client Dash</a>
-			version 1.5.5 or greater.
-			Please install and activate <b>Client Dash</b> to continue using.</p>
-	</div>
-<?php
+		?>
+		<div class="error">
+			<p>You have activated a plugin that requires <a href="http://w.org/plugins/client-dash">Client Dash</a>
+				version 1.6 or greater.
+				Please install and activate <strong>Client Dash</strong> to continue using.</p>
+		</div>
+	<?php
+	}
 }

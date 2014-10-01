@@ -2,263 +2,310 @@
 /*
 Plugin Name: Client Dash Extension Generator
 Description: This plugin will generate a custom Client Dash Extension.
-Version: 0.1
+Version: 0.1.0
 Author: Kyle Maurer
 Author URI: http://realbigmarketing.com/staff/kyle
 License: GPL2
 */
 
-/**
- * Zip File Generator Class for WordPress
- * Source: https://github.com/bradvin/wp-zip-generator
- */
-if ( ! class_exists( 'WP_Zip_Generator' ) ) {
+// Make sure the class doesn't exist
+if ( ! class_exists( 'ClientDash_Extension_Generator' ) ) {
 
-	class WP_Zip_Generator {
+	/**
+	 * Class ClientDash_Extension_Generator
+	 *
+	 * The main class for the plugin. Uses a gravity form to dynamically produce a Client Dash extension.
+	 *
+	 * @since CD Extension Generator 0.1.0
+	 */
+	class ClientDash_Extension_Generator {
 
-		var $options = array();
-		var $slug = '';
+		/**
+		 * This will be populated with all variables to parse the zipped files.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		private $variables = array();
 
-		function __construct( $args = null ) {
+		/**
+		 * The default values for all of the variable fields.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		private static $variable_defaults = array(
+			'plugin_name'        => '',
+			'plugin_description' => '',
+			'plugin_tags'        => '',
+			'author_name'        => '',
+			'author_uri'         => '',
+			'author_wp'          => '',
+			'page'               => '',
+			'tab'                => '',
+			'settings_tab'       => '',
+			'section_name'       => '',
+			'do_settings'        => '',
+			'do_menus'           => '',
+			'do_widgets'         => '',
+		);
 
-			$defaults = array(
-				'name'                 => '',
-				'source_directory'     => '',
-				'process_extensions'   => array( 'php', 'css', 'js', 'txt', 'md' ),
-				'zip_root_directory'   => '',
-				'zip_temp_directory'   => plugin_dir_path( __FILE__ ),
-				'download_filename'    => '',
-				'exclude_directories'  => array( '.git', '.svn', '.', '..' ),
-				'exclude_files'        => array( '.git', '.svn', '.DS_Store', '.gitignore', '.', '..' ),
-				'filename_filter'      => null,
-				'file_contents_filter' => null,
-				'post_process_action'  => null,
-				'variables'            => array()
-			);
+		/**
+		 * This should match the ID of the gravity form that's being used for this.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		private static $_form_ID = 1;
 
-			$this->options = wp_parse_args( $args, $defaults );
+		/**
+		 * The path to the plugin directory.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		private $_path;
 
-			//check required args
-			if ( empty( $this->options['name'] ) ) {
-				throw new Exception( "Zip_Generator class requires a name in order to function!" );
-			}
+		/**
+		 * The version of the plugin.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		private static $version = '0.1.0';
 
-			$this->slug = sanitize_title_with_dashes( $this->options['name'] );
+		/**
+		 * The main construct function.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		public function __construct() {
 
-			$this->options['download_filename'] = empty( $this->options['download_filename'] ) ? "{$this->slug}.zip" : $this->options['download_filename'];
+			// Set the path
+			$this->_path = plugin_dir_path( __FILE__ );
 
-			$this->options['zip_temp_filename'] = trailingslashit( $this->options['zip_temp_directory'] ) . sprintf( '%s-%s.zip', $this->slug, md5( print_r( $this->options['variables'], true ) ) );
+			// Hook into the form submission
+			add_action( 'gform_after_submission_' . self::$_form_ID, array( $this, 'form_submit' ), 10, 5 );
 
-			if ( ! empty( $this->options['filename_filter'] ) ) {
-				add_filter( 'zip_generator_process_filename-' . $this->slug, $this->options['filename_filter'], 10, 2 );
-			}
-
-			if ( ! empty( $this->options['file_contents_filter'] ) ) {
-				add_filter( 'zip_generator_process_file_contents-' . $this->slug, $this->options['file_contents_filter'], 10, 2 );
-			}
-
-			if ( ! empty( $this->options['post_process_action'] ) ) {
-				add_action( 'zip_generator_post_process-' . $this->slug, $this->options['post_process_action'], 10, 2 );
+			// Generate and download the zip
+			if ( isset( $_GET['download'] ) ) {
+				$this->generate_zip();
 			}
 		}
 
 		/**
-		 * Creates the new zip file based on the source_directory
+		 * Fires when you submit the generator gravity form.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 *
+		 * @param string $entry The entry object.
+		 * @param array $form The gravity form object.
 		 */
-		function generate() {
-			$zip = new ZipArchive;
+		public function form_submit( $entry, $form ) {
 
-			$res = $zip->open( $this->options['zip_temp_filename'], ZipArchive::CREATE && ZipArchive::OVERWRITE );
+			// Associate form values with their inputs and store them in this object's variables property
+			$this->associate_form_values( $form );
 
-			$iterator = new RecursiveDirectoryIterator( $this->options['source_directory'] );
-			foreach ( new RecursiveIteratorIterator( $iterator ) as $filename ) {
+			// Set defaults
+			$this->variables = wp_parse_args( $this->variables, self::$variable_defaults );
 
-				if ( in_array( basename( $filename ), $this->options['exclude_files'] ) ) {
+			// Store the data in a transient to carray it to the page refresh
+			set_transient( 'cd_extension_generator_variables', $this->variables, MINUTE_IN_SECONDS );
+
+			// Refresh the page to download the document
+			header( 'Refresh: 1; url=' . add_query_arg( 'download', 1 ) );
+		}
+
+		/**
+		 * Associates form input fields with their proper values.
+		 *
+		 * Gravity form dynamically creates fields, so they all get arbitrary names like "input_1", "input_2", etc. This
+		 * can get really confusing and cumbersome. So I'm using the "Admin Label" field in Gravity Forms and
+		 * associating that with each input, then storing each input's value into an element with that name.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 *
+		 * @param array $form_object The freshly submitted Gravity Form object.
+		 */
+		private function associate_form_values( $form_object ) {
+
+			// Cycle through all of the form's fields
+			foreach ( $form_object['fields'] as $field_object ) {
+
+				// If this key exists, then use the first one (checkboxes)
+				if ( ! empty( $field_object['inputs'] ) ) {
+					$field_object['id'] = str_replace( '.', '_', $field_object['inputs'][0]['id'] );
+				}
+
+				// Skip if it's not in POST (it should be) or if it's empty
+				if ( ! isset( $_POST["input_$field_object[id]"] ) || empty( $_POST["input_$field_object[id]"] ) ) {
 					continue;
 				}
 
-				foreach ( $this->options['exclude_directories'] as $directory ) {
-					if ( strstr( $filename, "/{$directory}/" ) ) {
-						continue 2;
-					}
-				} // continue the parent foreach loop
+				// Store the POST value and the label
+				$value = $_POST["input_$field_object[id]"];
+				$label = $field_object['adminLabel'];
 
-				$zip_filename = str_replace( trailingslashit( $this->options['source_directory'] ), '', basename( $filename ) );
-
-				$zip_filename = apply_filters( 'zip_generator_process_filename-' . $this->slug, $zip_filename );
-
-				$contents = $this->process_file_contents( file_get_contents( $filename ), basename( $filename ) );
-
-				$zip->addFromString( trailingslashit( $this->options['zip_root_directory'] ) . $zip_filename, $contents );
+				// If the current field is set in our variables array, add it
+				if ( isset( self::$variable_defaults[ $label ] ) ) {
+					$this->variables[ $label ] = $value;
+				}
 			}
 
-			do_action( 'zip_generator_post_process-' . $this->slug, $zip, $this->options );
+			// Remove default author uri
+			if ( $this->variables['author_uri'] == 'http://' ) {
+				$this->variables['author_uri'] = '';
+			}
+
+			// Setup some new vars
+			$this->variables['plugin_ID']    = strtolower(
+				str_replace(
+					array(
+						' ',
+						'-'
+					),
+					'_',
+					$this->variables['plugin_name']
+				)
+			);
+			$this->variables['plugin_class'] = str_replace(
+				array(
+					' ',
+					'-'
+				),
+				'',
+				ucwords( $this->variables['plugin_name']
+				)
+			);
+		}
+
+		/**
+		 * Generates the extension zip dynamically.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 */
+		public function generate_zip() {
+
+			// Get our data from the just recently saved transient
+			$this->variables = get_transient( 'cd_extension_generator_variables' );
+			delete_transient( 'cd_extension_generator_variables' );
+			if ( ! $this->variables ) {
+				return;
+			}
+
+			$zip = new ZipArchive();
+
+			if ( $msg = $zip->open( $this->variables['plugin_ID'] . '.zip', ZipArchive::CREATE && ZipArchive::OVERWRITE ) !== true ) {
+				die( $msg );
+			}
+
+			$files = array(
+				'client-dash-extension.php' => $this->variables['plugin_ID'] . '.php',
+				'readme.txt',
+				'style.css',
+			);
+
+			if ( $this->variables['do_settings'] == '1' ) {
+				$files[] = 'inc/settings.php';
+			}
+
+			if ( $this->variables['do_menus'] == '1' ) {
+				$files[] = 'inc/menus.php';
+			}
+
+			if ( $this->variables['do_widgets'] == '1' ) {
+				$files[] = 'inc/widgets.php';
+			}
+
+			foreach ( $files as $file => $new_file ) {
+
+				// If file does not have new name
+				if ( is_integer( $file ) ) {
+					$file = $new_file;
+				}
+
+				$file_contents = file_get_contents( "$this->_path/source/$file" );
+
+				// Remove or clean up conditional blocks
+				$file_contents = $this->replace_condition_blocks( $file_contents );
+
+				// Replace variables
+				$file_contents = $this->replace_variables( $file_contents );
+
+				// Add Files in
+				$zip->addFromString( "/$new_file", $file_contents );
+			}
 
 			$zip->close();
-		}
 
-		/**
-		 * Process the contents of an individual file
-		 *
-		 * @param $contents
-		 * @param $filename
-		 *
-		 * @return string
-		 */
-		function process_file_contents( $contents, $filename ) {
-			// Replace only files are care about
-			$valid_extensions_regex = implode( '|', $this->options['process_extensions'] );
-			if ( ! preg_match( "/\.({$valid_extensions_regex})$/", $filename ) ) {
-				return $contents;
-			}
-
-			foreach ( $this->options['variables'] as $key => $value ) {
-				$contents = preg_replace( '/(' . $key . ')/', $value, $contents );
-			}
-
-			$contents = apply_filters( 'zip_generator_process_file_contents-' . $this->slug, $contents, $filename );
-
-			return $contents;
-		}
-
-		/**
-		 * Send the download headers to the browser
-		 *
-		 * @param bool $delete
-		 */
-		function send_download_headers( $delete = true ) {
 			header( 'Content-type: application/zip' );
-			header( sprintf( 'Content-Disposition: attachment; filename="%s"', $this->options['download_filename'] ) );
-			readfile( $this->options['zip_temp_filename'] );
-			if ( $delete ) {
-				unlink( $this->options['zip_temp_filename'] );
+			header( 'Content-Disposition: attachment; filename="' . $this->variables['plugin_ID'] . '.zip"' );
+			readfile( $this->variables['plugin_ID'] . '.zip' );
+			unlink( $this->variables['plugin_ID'] . '.zip' );
+			exit();
+		}
+
+		/**
+		 * Parses the file contents and replaces conditional blocks conditionally.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 *
+		 * @param string $file_contents The old file contents.
+		 *
+		 * @return string The new file contents.
+		 */
+		private function replace_condition_blocks( $file_contents ) {
+
+			// TODO Get all extra white space to be deleted in new file when replacing conditionals
+
+			preg_match_all( '/{if:.*?{endif}/s', $file_contents, $conditional_blocks );
+			$conditional_blocks = reset( $conditional_blocks );
+
+			foreach ( $conditional_blocks as $block ) {
+
+				// Get the conditional parameter
+				preg_match( '/{if:(.*)}/', $block, $param );
+				$param = $param[1];
+
+				if ( isset( $this->variables[ $param ] ) && ! empty( $this->variables[ $param ] ) ) {
+
+					preg_match_all( '/{if:' . $param . '}(.*){endif}/s', $block, $content );
+					$content       = ltrim( $content[1][0], '\n\r' );
+					$file_contents = preg_replace( '/{if:' . $param . '}.*?{endif}[\\n]*/s', $content, $file_contents, 1 );
+				} else {
+					$file_contents = preg_replace( '/{if:' . $param . '}.*?{endif}[\\n]*/s', '', $file_contents, 1 );
+				}
 			}
+
+			return $file_contents;
+		}
+
+		/**
+		 * Parses the file contents and replaces variables.
+		 *
+		 * @since CD Extension Generator 0.1.0
+		 *
+		 * @param string $file_contents The old file contents.
+		 *
+		 * @return string The new file contents.
+		 */
+		private function replace_variables( $file_contents ) {
+
+			preg_match_all( '/{(.*?)}/', $file_contents, $content_variables );
+
+			foreach ( $content_variables[1] as $variable ) {
+
+				if ( ! array_key_exists( $variable, $this->variables ) && ! array_key_exists( $variable, self::$variable_defaults ) ) {
+					continue;
+				}
+
+				if ( isset( $this->variables[ $variable ] ) && ! empty( $this->variables[ $variable ] ) ) {
+					$file_contents = preg_replace( '/{' . $variable . '}/', $this->variables[ $variable ], $file_contents );
+				} else {
+					$file_contents = preg_replace( '/{' . $variable . '}/', self::$variable_defaults[ $variable ], $file_contents );
+				}
+			}
+
+			return $file_contents;
 		}
 	}
+
+	// Instantiate the class
+	new ClientDash_Extension_Generator();
 }
 
-
-/**
- * Kyle's function for instantiating the class, grabbing posted values and using them
- */
-function cdxecute() {
-
-	// Hidden field for distinguishing this form from others
-	if ( isset( $_POST['input_6'] ) ) {
-		$go = $_POST['input_6'];
-	} else {
-		$go = null;
-	}
-	// All other form fields
-
-	// Author name
-	if ( isset( $_POST['input_1'] ) ) {
-		$name = $_POST['input_1'];
-	} else {
-		$name = null;
-	}
-	// Plugin name
-	if ( isset( $_POST['input_2'] ) && ! empty( $_POST['input_2'] ) ) {
-		$plugin = $_POST['input_2'];
-	} else {
-		$plugin = 'my-cd-extension';
-	}
-	// Plugin name with underscores instead of spaces
-	if ( isset( $plugin ) ) {
-		$plugin_u = str_replace( ' ', '_', strtolower( $plugin ) );
-	} else {
-		$plugin_u = 'my-cd-extension';
-	}
-	// Plugin name with dashes instead of spaces
-	if ( isset( $plugin ) ) {
-		$plugin_d = str_replace( ' ', '-', strtolower( $plugin ) );
-	} else {
-		$plugin_d = null;
-	}
-	// Plugin name with removed spaces
-	if ( isset( $plugin ) ) {
-		$class = str_replace( ' ', '', $plugin );
-	} else {
-		$class = 'MyCDExtension';
-	}
-	// Author's website
-	if ( isset( $_POST['input_3'] ) ) {
-		$site = $_POST['input_3'];
-	} else {
-		$site = null;
-	}
-	// Plugin description
-	if ( isset( $_POST['input_7'] ) ) {
-		$description = $_POST['input_7'];
-	} else {
-		$description = null;
-	}
-	// Plugin tags
-	if ( isset( $_POST['input_8'] ) ) {
-		$tags = $_POST['input_8'];
-	} else {
-		$tags = null;
-	}
-	// Creator's wordpress.org username
-	if ( isset( $_POST['input_11'] ) ) {
-		$dotorgun = $_POST['input_11'];
-	} else {
-		$dotorgun = null;
-	}
-	// Client Dash page to add content to
-	if ( isset( $_POST['input_4'] ) ) {
-		$page = $_POST['input_4'];
-	} else {
-		$page = 'account';
-	}
-	// Client Dash tab to create or add to
-	if ( isset( $_POST['input_5'] ) ) {
-		$tab = $_POST['input_5'];
-	} else {
-		$tab = 'about_you';
-	}
-	// Client Dash section to create
-	if ( isset( $_POST['input_12'] ) ) {
-		$section = $_POST['input_12'];
-	} else {
-		$section = 'about_you';
-	}
-
-	// Define the variables to replace in the source files and the values to give them
-	$variables = array(
-		'{name}'        => $name,
-		'{plugin}'      => $plugin,
-		'{plugin_u}'    => $plugin_u,
-		'{plugin_d}'    => $plugin_d,
-		'{description}' => $description,
-		'{class}'       => $class,
-		'{site}'        => $site,
-		'{tags}'        => $tags,
-		'{dotorgun}'    => $dotorgun,
-		'{page}'        => $page,
-		'{tab}'         => $tab,
-		'{section}'     => $section
-	);
-
-	// Create the generator
-	$zip_generator = new WP_Zip_Generator( array(
-		'name'               => $plugin,
-		'process_extensions' => array( 'php', 'css', 'js', 'txt', 'md' ),
-		'source_directory'   => dirname( __FILE__ ) . '/source/',
-		'zip_root_directory' => $plugin_d,
-		'download_filename'  => $plugin_d . ".zip",
-		'variables'          => $variables
-	) );
-
-	if ( $go == 'true' ) {
-		// Generate the zip file
-		$zip_generator->generate();
-
-		// Download it to the client
-		$zip_generator->send_download_headers();
-
-		die();
-	}
-}
-
-add_action( 'init', 'cdxecute' );
