@@ -2,7 +2,7 @@
 /*
 Plugin Name: Client Dash Extension Generator
 Description: This plugin will generate a custom Client Dash Extension.
-Version: 0.1.0
+Version: 0.1.1
 Author: Kyle Maurer
 Author URI: http://realbigmarketing.com/staff/kyle
 License: GPL2
@@ -49,13 +49,6 @@ if ( ! class_exists( 'ClientDash_Extension_Generator' ) ) {
 		);
 
 		/**
-		 * This should match the ID of the gravity form that's being used for this.
-		 *
-		 * @since CD Extension Generator 0.1.0
-		 */
-		private static $_form_ID = 1;
-
-		/**
 		 * The path to the plugin directory.
 		 *
 		 * @since CD Extension Generator 0.1.0
@@ -67,7 +60,7 @@ if ( ! class_exists( 'ClientDash_Extension_Generator' ) ) {
 		 *
 		 * @since CD Extension Generator 0.1.0
 		 */
-		private static $version = '0.1.0';
+		private static $version = '0.1.1';
 
 		/**
 		 * The main construct function.
@@ -80,12 +73,30 @@ if ( ! class_exists( 'ClientDash_Extension_Generator' ) ) {
 			$this->_path = plugin_dir_path( __FILE__ );
 
 			// Hook into the form submission
-			add_action( 'gform_after_submission_' . self::$_form_ID, array( $this, 'form_submit' ), 10, 5 );
+			$form_ID = self::get_generator_form();
+			if ( ! empty( $form_ID ) ) {
+				add_action( "gform_after_submission_$form_ID", array( $this, 'form_submit' ), 10, 5 );
+			}
 
 			// Generate and download the zip
 			if ( isset( $_GET['download'] ) ) {
 				$this->generate_zip();
 			}
+		}
+
+		/**
+		 * Gets the form ID of the "Extension Generator" gravity form.
+		 *
+		 * @since CD Extension Generator 0.1.1
+		 *
+		 * @return mixed The form ID, or empty if it doesn't exist.
+		 */
+		private static function get_generator_form() {
+
+			global $wpdb;
+			$result = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}rg_form where title='Extension Generator'" );
+			$result = reset( $result );
+			return $result->id;
 		}
 
 		/**
