@@ -1,12 +1,15 @@
 <?php
 
 /**
- * Class {plugin_class}_Widgets
+ * Class MyCDExtension_Widgets
  *
  * This is an optional class for adding widgets to the Client Dash Settings -> Widgets tab to be made available for use
  * on the dashboard.
+ *
+ * If you do NOT want to use custom widgets, free to delete this file and the
+ * "include_once( "{$MyCDExtension::$_path}inc/widgets.php" );" line in the main boilerplate file.
  */
-class {plugin_class}_Widgets extends ClientDash_Widgets_API {
+class MyCDExtension_Widgets extends ClientDash_Widgets_API {
 
 	/**
 	 * This is where all of the widgets to be created go.
@@ -20,36 +23,60 @@ class {plugin_class}_Widgets extends ClientDash_Widgets_API {
 	 * NOTE: Callbacks SHOULD be in this class, but you are welcome to use a string instead of an array and call a
 	 * function outside of this class. However, if you do so, you will lose access to the provided helper functions
 	 * used below.
+	 *
+	 * Feel free to modify this example.
 	 */
 	public static $widgets = array(
-		'{plugin_ID}_widget' => array(
-			'title'             => '{plugin_name} Widget',
-			'description'       => 'My awesome extension comes with this great widget.',
+		'boilerplate_widget' => array(
+			'title'             => 'Boilerplate Widget',
+			'description'       => 'My awesome boilerplate comes with this great widget.',
 			//
 			// __CLASS__ provides the name of the current class. This tells the widget creator that the function is
 			// inside of this class.
-			'callback'          => array( __CLASS__, '{plugin_ID}_widget_callback' ),
-			'settings_callback' => array( __CLASS__, '{plugin_ID}_widget_settings_callback' ),
+			'callback'          => array( __CLASS__, 'boilerplate_widget_callback' ),
+			'settings_callback' => array( __CLASS__, 'boilerplate_widget_settings_callback' ),
 		)
 	);
 
 	/**
 	 * The main construct function.
+	 *
+	 * Don't worry about messing with this function.
 	 */
 	public function __construct() {
 
-		// Bail if not on the settings page
-		if ( ! self::is_cd_page( 'cd_settings', 'widgets' ) && ! isset( $_POST['cd-widgets'] ) ) {
-			return;
-		}
-
 		// Initialize our widgets
 		add_action( 'widgets_init', array( $this, 'add_widgets' ), 100 );
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widgets' ) );
+
+		add_filter( 'pre_update_option_cd_active_widgets', array( $this, 'filter_active_widgets' ) );
+	}
+
+	/**
+     * Removes the boilerplate widget from active widgets so it doesn't show on the CD widgets screen.
+	 */
+	function filter_active_widgets( $value ) {
+
+		foreach ( $value as $widget_ID => $widget ) {
+
+			// Break apart the ID
+			preg_match_all( "/(.*)(-\d+)/", $widget_ID, $matches );
+			$ID_base = $matches[1][0];
+
+			if ( isset( self::$widgets[ $ID_base ] ) ) {
+
+				unset( $value[ $widget_ID ] );
+			}
+		}
+
+		return $value;
 	}
 
 	/**
 	 * Adds all of your custom widget to the "Available Widgets" section on
 	 * the Settings -> Widgets page.
+	 *
+	 * Don't worry about messing with this function.
 	 */
 	public function add_widgets() {
 
@@ -73,40 +100,81 @@ class {plugin_class}_Widgets extends ClientDash_Widgets_API {
 	}
 
 	/**
+	 * Adds the custom widgets to the dashboard so the callback can be grabbed.
+	 */
+	public function add_dashboard_widgets() {
+
+		$sidebars = get_option( 'sidebars_widgets' );
+
+		/**
+		 * This allows the currently visible dashboard "sidebar" to be changed from the default.
+		 *
+		 * @since Client Dash 1.6.4
+		 */
+		$current_sidebar = apply_filters( 'cd_dashboard_widgets_sidebar', "cd-dashboard" );
+
+		$widgets    = $sidebars[ $current_sidebar ];
+		$widget_IDs = array();
+
+		foreach ( $widgets as $widget_ID ) {
+
+			// Break apart the ID
+			preg_match_all( "/(.*)(-\d+)/", $widget_ID, $matches );
+			$ID_base = $matches[1][0];
+
+			$widget_IDs[ $widget_ID ] = $ID_base;
+		}
+
+		foreach ( $widget_IDs as $widget_ID => $widget_base ) {
+
+			if ( ! isset( self::$widgets[ $widget_base ] ) ) {
+
+				continue;
+			}
+
+			$widget_args = self::$widgets[ $widget_base ];
+
+			wp_add_dashboard_widget( $widget_ID, $widget_args['title'], $widget_args['callback'] );
+		}
+	}
+
+	/**
 	 * This is the callback for the dashboard widget itself, as defined in the widget array[ 'callback' ]. Place here
 	 * all HTML you want inside of the widget on the dashboard.
 	 *
 	 * Pro Tip: Use the function "self::get_field()" (as you can see below) to get all of the custom form data you may
 	 * have created in the widget settings.
+	 *
+	 * Feel free to modify this example.
 	 */
-	public static function {plugin_ID}_widget_callback( $null, $meta_box ) {
+	public static function boilerplate_widget_callback( $null, $meta_box ) {
 
 		// IMPORTANT: This line is necessary to retrieve the values
 		$ID = $meta_box['id'];
 		?>
-		<h4><strong>{plugin_name} Widget Values</strong></h4>
+        <h4><strong>Boilerplate Widget Values</strong></h4>
 
-		<p>
-			Text Field: <strong><?php echo self::get_field( $ID, 'text_field' ); ?></strong>
-		</p>
+        <p>
+            Text Field: <strong><?php echo self::get_field( $ID, 'text_field' ); ?></strong>
+        </p>
 
-		<p>
-			Checkbox Field:
-			<strong><?php echo self::get_field( $ID, 'checkbox_field' ) == '1' ? 'Checked' : ''; ?></strong>
-		</p>
+        <p>
+            Checkbox Field:
+            <strong><?php echo self::get_field( $ID, 'checkbox_field' ) == '1' ? 'Checked' : ''; ?></strong>
+        </p>
 
-		<p>
-			Text Area Field: <strong><?php echo self::get_field( $ID, 'textarea_field' ); ?></strong>
-		</p>
+        <p>
+            Text Area Field: <strong><?php echo self::get_field( $ID, 'textarea_field' ); ?></strong>
+        </p>
 
-		<p>
-			Select Box Field: <strong><?php echo self::get_field( $ID, 'select_field' ); ?></strong>
-		</p>
+        <p>
+            Select Box Field: <strong><?php echo self::get_field( $ID, 'select_field' ); ?></strong>
+        </p>
 
-		<p>
-			Custom Field: <strong><?php echo self::get_field( $ID, 'custom_field' ); ?></strong>
-		</p>
-	<?php
+        <p>
+            Custom Field: <strong><?php echo self::get_field( $ID, 'custom_field' ); ?></strong>
+        </p>
+		<?php
 	}
 
 	/**
@@ -116,21 +184,23 @@ class {plugin_class}_Widgets extends ClientDash_Widgets_API {
 	 * Pro Tip: Take full advantage of the supplied form input functions (as used below). If you want to make a custom
 	 * form input, then simply use the "self::get_field_name()" function for supplying the input name. This ensures
 	 * that data saving and retrieval can still be handled by Client Dash.
+	 *
+	 * Feel free to modify or add to this example, or even remove it.
 	 */
-	public static function {plugin_ID}_widget_settings_callback( $ID ) {
+	public static function boilerplate_widget_settings_callback( $ID ) {
 
 		// NOTE: To find out how to use these fields, please visit the Client Dash documentation page.
 
 		echo self::text_field(
 			$ID,
 			'text_field',
-			'{plugin_name} Text'
+			'Boilerplate Text'
 		);
 
 		echo self::checkbox_field(
 			$ID,
 			'checkbox_field',
-			'{plugin_name} Checkbox',
+			'Boilerplate Checkbox',
 			array(
 				'title' => 'This is a custom title attr! Feel free to add as many attr\'s as you like!',
 			)
@@ -139,13 +209,13 @@ class {plugin_class}_Widgets extends ClientDash_Widgets_API {
 		echo self::textarea_field(
 			$ID,
 			'textarea_field',
-			'{plugin_name} Textarea'
+			'Boilerplate Textarea'
 		);
 
 		echo self::select_field(
 			$ID,
 			'select_field',
-			'{plugin_name} Select Box',
+			'Boilerplate Select Box',
 			array(
 				'Option 1' => 'option_1',
 				'Option 2' => 'option_2',
@@ -166,18 +236,21 @@ class {plugin_class}_Widgets extends ClientDash_Widgets_API {
 		 */
 		$field_ID = self::get_field_ID( $ID, 'custom_field' );
 		?>
-		<p>
-			<label for="<?php echo $field_ID; ?>">
-				Custom Field
-				<br/>
-				<input type="text" id="<?php echo $field_ID; ?>"
-				       name="<?php echo self::get_field_name( $ID, 'custom_field' ); ?>"
-				       value="<?php echo self::get_field( $ID, 'custom_field' ); ?>"/>
-			</label>
-		</p>
-	<?php
+        <p>
+            <label for="<?php echo $field_ID; ?>">
+                Custom Field
+                <br/>
+                <input type="text" id="<?php echo $field_ID; ?>"
+                       name="<?php echo self::get_field_name( $ID, 'custom_field' ); ?>"
+                       value="<?php echo self::get_field( $ID, 'custom_field' ); ?>"/>
+            </label>
+        </p>
+		<?php
 	}
 }
 
+add_action( 'wp_dashboard_setup', function () {
+} );
+
 // Instantiates the class. Do NOT remove this line or nothing will work.
-new {plugin_class}_Widgets();
+new MyCDExtension_Widgets();
